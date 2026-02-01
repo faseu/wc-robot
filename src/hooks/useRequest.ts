@@ -1,18 +1,10 @@
-import type { Ref } from 'vue'
-import { ref } from 'vue'
+import { UnwrapRef } from 'vue'
 
-interface IUseRequestOptions<T> {
+type IUseRequestOptions<T> = {
   /** 是否立即执行 */
   immediate?: boolean
   /** 初始化数据 */
   initialData?: T
-}
-
-interface IUseRequestReturn<T, P = undefined> {
-  loading: Ref<boolean>
-  error: Ref<boolean | Error>
-  data: Ref<T | undefined>
-  run: (args?: P) => Promise<T | undefined>
 }
 
 /**
@@ -23,18 +15,18 @@ interface IUseRequestReturn<T, P = undefined> {
  * @param options.initialData 初始化数据，默认为undefined。
  * @returns 返回一个对象{loading, error, data, run}，包含请求的加载状态、错误信息、响应数据和手动触发请求的函数。
  */
-export default function useRequest<T, P = undefined>(
-  func: (args?: P) => Promise<T>,
+export default function useRequest<T>(
+  func: () => Promise<IResData<T>>,
   options: IUseRequestOptions<T> = { immediate: false },
-): IUseRequestReturn<T, P> {
+) {
   const loading = ref(false)
   const error = ref(false)
-  const data = ref<T | undefined>(options.initialData) as Ref<T | undefined>
-  const run = async (args?: P) => {
+  const data = ref<T>(options.initialData)
+  const run = async () => {
     loading.value = true
-    return func(args)
+    return func()
       .then((res) => {
-        data.value = res
+        data.value = res.data as UnwrapRef<T>
         error.value = false
         return data.value
       })
@@ -47,8 +39,6 @@ export default function useRequest<T, P = undefined>(
       })
   }
 
-  if (options.immediate) {
-    (run as (args: P) => Promise<T | undefined>)({} as P)
-  }
+  options.immediate && run()
   return { loading, error, data, run }
 }

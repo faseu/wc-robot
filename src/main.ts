@@ -1,21 +1,18 @@
 import { createSSRApp } from 'vue'
 import App from './App.vue'
-import { requestInterceptor } from './http/interceptor'
-import { routeInterceptor } from './router/interceptor'
-
 import store from './store'
-import '@/style/index.scss'
+import { routeInterceptor, requestInterceptor, prototypeInterceptor } from './interceptors'
 import 'virtual:uno.css'
-import i18n from './locale/index'
+import '@/style/index.scss'
+import '@/style/iconfont.css'
 
 export function createApp() {
-  const app = createSSRApp(App)
-  app.use(store)
-  app.use(routeInterceptor)
-  app.use(requestInterceptor)
-  app.use(i18n)
-
-  return {
-    app,
-  }
+	const app = createSSRApp(App)
+	app.use(store)
+	app.use(routeInterceptor)
+	app.use(requestInterceptor)
+	app.use(prototypeInterceptor)
+	return {
+		app,
+	}
 }

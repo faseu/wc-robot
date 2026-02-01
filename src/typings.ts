@@ -1,12 +1,13 @@
-// 枚举定义
+// 全局要用的类型放到这里
 
-export enum TestEnum {
-  A = '1',
-  B = '2',
+type IResData<T> = {
+  code: number
+  msg: string
+  data: T
 }
 
 // uni.uploadFile文件上传参数
-export interface IUniUploadFileOptions {
+type IUniUploadFileOptions = {
   file?: File
   files?: UniApp.UploadFileOptionFiles[]
   filePath?: string
@@ -14,8 +15,15 @@ export interface IUniUploadFileOptions {
   formData?: any
 }
 
-/** 工具类型：删除字符串开头的第一个斜杠 */
-export type RemoveLeadingSlash<S extends string> = S extends `/${infer Rest}` ? Rest : S
+type IUserInfo = {
+  nickname?: string
+  avatar?: string
+  /** 微信的 openid，非微信没有这个字段 */
+  openid?: string
+  token?: string
+}
 
-/** 工具类型：删除联合类型中每个字符串的第一个斜杠 */
-export type RemoveLeadingSlashFromUnion<T extends string> = T extends any ? RemoveLeadingSlash<T> : never
+enum TestEnum {
+  A = 'a',
+  B = 'b',
+}

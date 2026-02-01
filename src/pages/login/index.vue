@@ -1,17 +1,14 @@
-<script lang="ts" setup>
-import { useDeviceStore } from '@/store/device'
-
-defineOptions({
-  name: 'Login',
-})
-
-definePage({
-  type: 'home',
+<route lang="json5" type="home">
+{
   style: {
     navigationStyle: 'custom',
-    navigationBarTitleText: '',
+    navigationBarTitleText: '登录',
   },
-})
+}
+</route>
+
+<script lang="ts" setup>
+import { useDeviceStore } from '@/store/device'
 
 const deviceStore = useDeviceStore()
 
@@ -23,26 +20,19 @@ const mqttConfig = ref({
   password: 'web12345678.',
 })
 
-// 加载状态
+// 加载状
 const loading = ref(false)
 const showAdvanced = ref(false)
 
-// 连接状态
+// 连接状
 const connectionStatus = computed(() => deviceStore.connectionStatus)
 const isConnected = computed(() => connectionStatus.value === 'connected')
 
-// 动画状态
-const mounted = ref(false)
-onMounted(() => {
-  setTimeout(() => {
-    mounted.value = true
-  }, 100)
-})
-
+// 动画状
+const mounted = ref(true)
 /** 连接 MQTT */
 async function handleConnect() {
-  if (loading.value)
-    return
+  if (loading.value) return
 
   loading.value = true
   try {
@@ -56,15 +46,13 @@ async function handleConnect() {
         url: '/pages/device/list',
       })
     }, 500)
-  }
-  catch (err) {
+  } catch (err) {
     console.error('连接失败:', err)
     uni.showToast({
       title: '连接失败',
       icon: 'error',
     })
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 }
@@ -78,18 +66,16 @@ async function handleDisconnect() {
   })
 }
 
-/** 跳转到设备列表 */
 function goToDeviceList() {
   uni.redirectTo({
     url: '/pages/device/list',
   })
 }
 
-/** 获取状态文本 */
 function getStatusText(status: string): string {
   const statusMap: Record<string, string> = {
     disconnected: '未连接',
-    connecting: '连接中...',
+    connecting: '连接成功..',
     connected: '已连接',
     error: '连接错误',
   }
@@ -99,7 +85,7 @@ function getStatusText(status: string): string {
 
 <template>
   <view class="login-page">
-    <!-- 动态背景 -->
+    <!-- 动态背-->
     <view class="bg-container">
       <!-- 网格背景 -->
       <view class="grid-bg" />
@@ -111,11 +97,11 @@ function getStatusText(status: string): string {
       <view class="particles">
         <view v-for="i in 20" :key="i" class="particle" :class="`particle-${i}`" />
       </view>
-      <!-- 扫描线 -->
+      <!-- 扫描-->
       <view class="scan-line" />
     </view>
 
-    <!-- 主内容 -->
+    <!-- 主内-->
     <view class="content" :class="{ 'content-visible': mounted }">
       <!-- Logo 区域 -->
       <view class="logo-section">
@@ -131,9 +117,7 @@ function getStatusText(status: string): string {
           <text class="title-text">ROBOT</text>
           <text class="title-sub">CONTROL CENTER</text>
         </view>
-        <view class="logo-desc">
-          智能机器人远程控制系统
-        </view>
+        <view class="logo-desc">智能机器人远程控制系统</view>
       </view>
 
       <!-- 状态指示器 -->
@@ -164,11 +148,7 @@ function getStatusText(status: string): string {
               服务器地址
             </view>
             <view class="form-input-wrapper">
-              <input
-                v-model="mqttConfig.broker"
-                class="form-input"
-                placeholder="MQTT Broker"
-              >
+              <input v-model="mqttConfig.broker" class="form-input" placeholder="MQTT Broker" />
               <view class="input-glow" />
             </view>
           </view>
@@ -184,7 +164,7 @@ function getStatusText(status: string): string {
                 class="form-input"
                 type="number"
                 placeholder="端口"
-              >
+              />
               <view class="input-glow" />
             </view>
           </view>
@@ -196,11 +176,7 @@ function getStatusText(status: string): string {
                 用户名
               </view>
               <view class="form-input-wrapper">
-                <input
-                  v-model="mqttConfig.username"
-                  class="form-input"
-                  placeholder="用户名"
-                >
+                <input v-model="mqttConfig.username" class="form-input" placeholder="用户名" />
                 <view class="input-glow" />
               </view>
             </view>
@@ -216,7 +192,7 @@ function getStatusText(status: string): string {
                   class="form-input"
                   password
                   placeholder="密码"
-                >
+                />
                 <view class="input-glow" />
               </view>
             </view>
@@ -250,7 +226,7 @@ function getStatusText(status: string): string {
             <view class="btn-glow" />
             <view class="btn-content">
               <text class="i-carbon-dashboard" />
-              <text>进入控制台</text>
+              <text>进入控制</text>
             </view>
             <view class="btn-border" />
           </button>
@@ -285,7 +261,7 @@ function getStatusText(status: string): string {
 </template>
 
 <style lang="scss" scoped>
-// 科技感配色
+// 科技感配
 $primary: #00d4ff;
 $primary-dark: #0099cc;
 $secondary: #7b2dff;
@@ -425,7 +401,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 扫描线
+// 扫描
 .scan-line {
   position: absolute;
   left: 0;
@@ -445,7 +421,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 主内容
+// 主内
 .content {
   position: relative;
   z-index: 10;
@@ -812,7 +788,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
     font-weight: 600;
     color: $text-primary;
     letter-spacing: 4rpx;
-    padding: 0 12px;
+    padding: 0 8px;
   }
 
   .btn-border {

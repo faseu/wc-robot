@@ -1,37 +1,28 @@
 {
   "compilerOptions": {
     "composite": true,
-    "lib": ["esnext", "dom"],
-    "baseUrl": ".",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@img/*": ["./src/static/*"]
-    },
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
-    "types": [
-      "@dcloudio/types",
-      "@uni-helper/uni-types",
-      "@uni-helper/vite-plugin-uni-pages",
-      "miniprogram-api-typings",
-      "z-paging/types",
-      "./src/types/async-component.d.ts",
-      "./src/types/async-import.d.ts",
-      "./src/typings.d.ts"
-    ],
-    "allowJs": true,
     "noImplicitThis": true,
-    "outDir": "dist",
-    "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "allowJs": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "outDir": "dist",
+    "lib": ["esnext", "dom"],
+    "types": ["@dcloudio/types", "@types/wechat-miniprogram", "wot-design-uni/global.d.ts"]
   },
   "vueCompilerOptions": {
-    "plugins": ["@uni-helper/uni-types/volar-plugin"]
+    "target": 3,
+    "nativeTags": ["block", "template", "component", "slot"]
   },
+  "exclude": ["node_modules"],
   "include": [
-    "package.json",
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.d.ts",
@@ -39,6 +30,5 @@
     "src/**/*.jsx",
     "src/**/*.vue",
     "src/**/*.json"
-  ],
-  "exclude": ["node_modules", "dist"]
+  ]
 }

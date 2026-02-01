@@ -1,17 +1,14 @@
+<route lang="json5" type="home">
+{
+  style: {
+    navigationStyle: 'custom',
+    navigationBarTitleText: '登录',
+  },
+}
+</route>
 <script lang="ts" setup>
 import type { CleanMode, DeviceInfo } from '@/mqtt'
 import { useDeviceStore } from '@/store/device'
-
-defineOptions({
-  name: 'DeviceDetail',
-})
-
-definePage({
-  style: {
-    navigationStyle: 'custom',
-    navigationBarTitleText: '',
-  },
-})
 
 const deviceStore = useDeviceStore()
 
@@ -19,16 +16,16 @@ const deviceStore = useDeviceStore()
 const deviceId = ref('')
 // 当前设备信息
 const device = computed<DeviceInfo | undefined>(() => {
-  return deviceStore.devices.find(d => d.deviceId === deviceId.value)
+  return deviceStore.devices.find((d) => d.deviceId === deviceId.value)
 })
 
-// 加载状态
+// 加载状
 const commanding = ref(false)
 const tasking = ref(false)
 const activeCmd = ref('')
 
-// 动画状态
-const mounted = ref(false)
+// 动画状
+const mounted = ref(true)
 
 // 命令确认记录
 const commandAcks = computed(() => deviceStore.commandAcks)
@@ -36,14 +33,8 @@ const commandAcks = computed(() => deviceStore.commandAcks)
 const taskResults = computed(() => deviceStore.taskResults)
 // 错误记录
 const errors = computed(() => deviceStore.errors)
-// 连接状态
+// 连接状
 const isConnected = computed(() => deviceStore.connectionStatus === 'connected')
-
-onMounted(() => {
-  setTimeout(() => {
-    mounted.value = true
-  }, 100)
-})
 
 /** 页面加载 */
 onLoad(async (options) => {
@@ -51,12 +42,11 @@ onLoad(async (options) => {
     deviceId.value = options.deviceId
     deviceStore.setCurrentDevice(options.deviceId)
   }
-  // 确保 MQTT 已连接
+  // 确保 MQTT 已连
   if (deviceStore.connectionStatus !== 'connected') {
     try {
       await deviceStore.connect()
-    }
-    catch (err) {
+    } catch (err) {
       console.error('[Detail] MQTT connect error:', err)
     }
   }
@@ -67,25 +57,22 @@ function goBack() {
   uni.navigateBack()
 }
 
-/** 发送控制命令 */
+/** 发送控制命 */
 async function sendCommand(cmd: 'start' | 'stop' | 'pause' | 'resume' | 'home' | 'charge') {
   if (!device.value?.online) {
     uni.showToast({ title: '设备离线', icon: 'none' })
     return
   }
-  if (commanding.value)
-    return
+  if (commanding.value) return
 
   commanding.value = true
   activeCmd.value = cmd
   try {
     await deviceStore.sendCommand(deviceId.value, cmd)
     uni.showToast({ title: '指令已发送', icon: 'success' })
-  }
-  catch {
+  } catch {
     uni.showToast({ title: '发送失败', icon: 'error' })
-  }
-  finally {
+  } finally {
     setTimeout(() => {
       commanding.value = false
       activeCmd.value = ''
@@ -93,24 +80,21 @@ async function sendCommand(cmd: 'start' | 'stop' | 'pause' | 'resume' | 'home' |
   }
 }
 
-/** 发送任务 */
+/** 发送任 */
 async function sendTask(taskType: 'clean' | 'patrol' | 'charge') {
   if (!device.value?.online) {
     uni.showToast({ title: '设备离线', icon: 'none' })
     return
   }
-  if (tasking.value)
-    return
+  if (tasking.value) return
 
   tasking.value = true
   try {
     await deviceStore.sendTask(deviceId.value, taskType)
-    uni.showToast({ title: '任务已下发', icon: 'success' })
-  }
-  catch {
+    uni.showToast({ title: '任务已下送', icon: 'success' })
+  } catch {
     uni.showToast({ title: '发送失败', icon: 'error' })
-  }
-  finally {
+  } finally {
     setTimeout(() => {
       tasking.value = false
     }, 500)
@@ -119,21 +103,19 @@ async function sendTask(taskType: 'clean' | 'patrol' | 'charge') {
 
 /** 格式化时间戳 */
 function formatTimestamp(ts: number): string {
-  if (!ts)
-    return '--:--'
+  if (!ts) return '--:--'
   const date = new Date(ts)
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
 }
 
-/** 格式化完整时间 */
+/** 格式化完整时 */
 function formatFullTime(ts: number): string {
-  if (!ts)
-    return '暂无数据'
+  if (!ts) return '暂无数据'
   const date = new Date(ts)
   return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-/** 获取状态类名 */
+/** 获取状态类 */
 function getStatusClass(status: string): string {
   const classMap: Record<string, string> = {
     idle: 'status-idle',
@@ -157,16 +139,59 @@ const controlButtons = [
 
 /** 任务类型配置 */
 const taskTypes = [
-  { type: 'clean', label: '清洁', desc: '全区域清洁任务', icon: 'i-carbon-clean', color: '#00d4ff' },
-  { type: 'patrol', label: '巡逻', desc: '安全巡检任务', icon: 'i-carbon-location-current', color: '#00ff88' },
-  { type: 'charge', label: '充电', desc: '返回充电任务', icon: 'i-carbon-battery-charging', color: '#ffaa00' },
+  {
+    type: 'clean',
+    label: '清洁',
+    desc: '全区域清洁任务',
+    icon: 'i-carbon-clean',
+    color: '#00d4ff',
+  },
+  {
+    type: 'patrol',
+    label: '巡逻',
+    desc: '安全巡检任务',
+    icon: 'i-carbon-location-current',
+    color: '#00ff88',
+  },
+  {
+    type: 'charge',
+    label: '充电',
+    desc: '返回充电任务',
+    icon: 'i-carbon-battery-charging',
+    color: '#ffaa00',
+  },
 ] as const
 
 /** 工作模式配置 */
 const workModes = [
-  { mode: 'steam' as CleanMode, label: '蒸汽', desc: '高温蒸汽清洁', icon: 'i-carbon-fog', color: '#ff6b6b' },
-  { mode: 'blower' as CleanMode, label: '吹风', desc: '强力吹风除尘', icon: 'i-carbon-wind-stream', color: '#4ecdc4' },
-  { mode: 'vacuum' as CleanMode, label: '吸尘', desc: '深度吸尘清洁', icon: 'i-carbon-tornado', color: '#a855f7' },
+  {
+    mode: 'steam' as CleanMode,
+    label: '蒸汽',
+    desc: '高温蒸汽清洁',
+    icon: 'i-carbon-fog',
+    color: '#ff6b6b',
+  },
+  {
+    mode: 'blower' as CleanMode,
+    label: '吹风',
+    desc: '强力吹风除尘',
+    icon: 'i-carbon-wind-stream',
+    color: '#4ecdc4',
+  },
+  {
+    mode: 'suction_water' as CleanMode,
+    label: '吸水',
+    desc: '地面吸水清理',
+    icon: 'i-carbon-dew-point',
+    color: '#00d4ff',
+  },
+  {
+    mode: 'vacuum' as CleanMode,
+    label: '吸尘',
+    desc: '深度吸尘清洁',
+    icon: 'i-carbon-tornado',
+    color: '#a855f7',
+  },
 ]
 
 /** 当前激活的工作模式 */
@@ -178,19 +203,16 @@ async function startWithMode(mode: CleanMode) {
     uni.showToast({ title: '设备离线', icon: 'none' })
     return
   }
-  if (commanding.value)
-    return
+  if (commanding.value) return
 
   commanding.value = true
   activeMode.value = mode
   try {
     await deviceStore.sendCommand(deviceId.value, 'start', mode)
     uni.showToast({ title: '指令已发送', icon: 'success' })
-  }
-  catch {
+  } catch {
     uni.showToast({ title: '发送失败', icon: 'error' })
-  }
-  finally {
+  } finally {
     setTimeout(() => {
       commanding.value = false
       activeMode.value = ''
@@ -216,15 +238,13 @@ async function startWithMode(mode: CleanMode) {
         <view class="nav-back" @click="goBack">
           <text class="i-carbon-arrow-left" />
         </view>
-        <view class="nav-title">
-          设备控制
-        </view>
+        <view class="nav-title">设备控制</view>
         <view class="nav-status" :class="{ online: isConnected }">
           <view class="status-dot" />
         </view>
       </view>
 
-      <!-- 设备不存在 -->
+      <!-- 设备不存-->
       <view v-if="!device" class="not-found">
         <view class="not-found-icon">
           <text class="i-carbon-warning-alt text-100rpx" />
@@ -236,7 +256,7 @@ async function startWithMode(mode: CleanMode) {
       </view>
 
       <template v-else>
-        <!-- 设备状态卡片 -->
+        <!-- 设备状态卡-->
         <view class="device-card">
           <view class="card-bg">
             <view class="card-glow" />
@@ -264,7 +284,7 @@ async function startWithMode(mode: CleanMode) {
               </view>
             </view>
 
-            <!-- 数据仪表盘 -->
+            <!-- 数据仪表-->
             <view class="data-dashboard">
               <!-- 电量 -->
               <view class="gauge-item">
@@ -277,7 +297,7 @@ async function startWithMode(mode: CleanMode) {
                       cx="50"
                       cy="50"
                       r="42"
-                      :style="{ strokeDashoffset: 264 - (264 * device.battery / 100) }"
+                      :style="{ strokeDashoffset: 264 - (264 * device.battery) / 100 }"
                     />
                   </svg>
                   <view class="gauge-value">
@@ -301,7 +321,7 @@ async function startWithMode(mode: CleanMode) {
                       cx="50"
                       cy="50"
                       r="42"
-                      :style="{ strokeDashoffset: 264 - (264 * (device.water || 0) / 100) }"
+                      :style="{ strokeDashoffset: 264 - (264 * (device.water || 0)) / 100 }"
                     />
                   </svg>
                   <view class="gauge-value">
@@ -321,9 +341,7 @@ async function startWithMode(mode: CleanMode) {
                   <text class="i-carbon-time text-48rpx" />
                   <text class="time-value">{{ formatFullTime(device.lastUpdate) }}</text>
                 </view>
-                <view class="gauge-label">
-                  最后更新
-                </view>
+                <view class="gauge-label">最后更新</view>
               </view>
             </view>
           </view>
@@ -336,9 +354,7 @@ async function startWithMode(mode: CleanMode) {
             <view class="section-icon">
               <text class="i-carbon-settings-adjust" />
             </view>
-            <view class="section-title">
-              控制面板
-            </view>
+            <view class="section-title">控制面板</view>
             <view class="section-line" />
           </view>
 
@@ -365,9 +381,7 @@ async function startWithMode(mode: CleanMode) {
             <view class="section-icon">
               <text class="i-carbon-operations-field" />
             </view>
-            <view class="section-title">
-              工作模式
-            </view>
+            <view class="section-title">工作模式</view>
             <view class="section-line" />
           </view>
 
@@ -397,9 +411,7 @@ async function startWithMode(mode: CleanMode) {
             <view class="section-icon">
               <text class="i-carbon-task" />
             </view>
-            <view class="section-title">
-              任务下发
-            </view>
+            <view class="section-title">任务下发</view>
             <view class="section-line" />
           </view>
 
@@ -426,14 +438,15 @@ async function startWithMode(mode: CleanMode) {
         </view>
 
         <!-- 记录面板 -->
-        <view v-if="commandAcks.length > 0 || taskResults.length > 0 || errors.length > 0" class="section-card">
+        <view
+          v-if="commandAcks.length > 0 || taskResults.length > 0 || errors.length > 0"
+          class="section-card"
+        >
           <view class="section-header">
             <view class="section-icon">
               <text class="i-carbon-document" />
             </view>
-            <view class="section-title">
-              操作记录
-            </view>
+            <view class="section-title">操作记录</view>
             <view class="section-line" />
           </view>
 
@@ -503,7 +516,7 @@ async function startWithMode(mode: CleanMode) {
 </template>
 
 <style lang="scss" scoped>
-// 科技感配色
+// 科技感配
 $primary: #00d4ff;
 $secondary: #7b2dff;
 $success: #00ff88;
@@ -609,7 +622,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 导航栏
+// 导航
 .nav-bar {
   display: flex;
   align-items: center;
@@ -676,7 +689,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 设备不存在
+// 设备不存
 .not-found {
   display: flex;
   flex-direction: column;
@@ -903,7 +916,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
     }
   }
 
-  // 数据仪表盘
+  // 数据仪表
   .data-dashboard {
     display: flex;
     justify-content: space-around;
@@ -1317,7 +1330,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 记录组
+// 记录
 .record-group {
   margin-top: 24rpx;
   padding-top: 24rpx;

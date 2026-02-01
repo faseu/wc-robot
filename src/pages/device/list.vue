@@ -1,23 +1,20 @@
+<route lang="json5">
+{
+  style: {
+    navigationStyle: 'custom',
+    navigationBarTitleText: '设备列表',
+  },
+}
+</route>
 <script lang="ts" setup>
 import type { DeviceInfo } from '@/mqtt'
 import { useDeviceStore } from '@/store/device'
-
-defineOptions({
-  name: 'DeviceList',
-})
-
-definePage({
-  style: {
-    navigationStyle: 'custom',
-    navigationBarTitleText: '',
-  },
-})
 
 const deviceStore = useDeviceStore()
 
 // 设备列表
 const devices = computed(() => deviceStore.devices)
-// 连接状态
+// 连接状
 const connectionStatus = computed(() => deviceStore.connectionStatus)
 const isConnected = computed(() => connectionStatus.value === 'connected')
 // 统计数据
@@ -25,15 +22,11 @@ const onlineCount = computed(() => deviceStore.onlineCount)
 const workingCount = computed(() => deviceStore.workingCount)
 const totalCount = computed(() => devices.value.length)
 
-// 动画状态
-const mounted = ref(false)
+// 动画状
+const mounted = ref(true)
 const currentTime = ref(new Date())
 
 onMounted(() => {
-  setTimeout(() => {
-    mounted.value = true
-  }, 100)
-
   // 更新时间
   setInterval(() => {
     currentTime.value = new Date()
@@ -69,8 +62,7 @@ async function quickStart(device: DeviceInfo, e: Event) {
   try {
     await deviceStore.sendCommand(device.deviceId, 'start')
     uni.showToast({ title: '指令已发送', icon: 'success' })
-  }
-  catch {
+  } catch {
     uni.showToast({ title: '发送失败', icon: 'error' })
   }
 }
@@ -85,13 +77,11 @@ async function quickStop(device: DeviceInfo, e: Event) {
   try {
     await deviceStore.sendCommand(device.deviceId, 'stop')
     uni.showToast({ title: '指令已发送', icon: 'success' })
-  }
-  catch {
+  } catch {
     uni.showToast({ title: '发送失败', icon: 'error' })
   }
 }
 
-/** 退出登录 */
 async function handleLogout() {
   await deviceStore.disconnect()
   uni.redirectTo({
@@ -99,35 +89,28 @@ async function handleLogout() {
   })
 }
 
-/** 格式化时间 */
 function formatTime(timestamp: number): string {
-  if (!timestamp)
-    return '--:--'
+  if (!timestamp) return '--:--'
   const date = new Date(timestamp)
   const now = Date.now()
   const diff = now - timestamp
 
-  if (diff < 60000)
-    return '刚刚'
-  if (diff < 3600000)
-    return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
   return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
-/** 格式化当前时间 */
 function formatCurrentTime(): string {
   const date = currentTime.value
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
 }
 
-/** 格式化当前日期 */
 function formatCurrentDate(): string {
   const date = currentTime.value
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`
 }
 
-/** 获取状态颜色类名 */
 function getStatusClass(status: string): string {
   const classMap: Record<string, string> = {
     idle: 'status-idle',
@@ -151,7 +134,7 @@ function getStatusClass(status: string): string {
 
     <!-- 内容区域 -->
     <view class="page-content" :class="{ visible: mounted }">
-      <!-- 顶部导航栏 -->
+      <!-- 顶部导航-->
       <view class="nav-header">
         <view class="nav-title">
           <text class="i-carbon-dashboard text-36rpx" />
@@ -163,7 +146,7 @@ function getStatusClass(status: string): string {
         </view>
       </view>
 
-      <!-- 连接状态 -->
+      <!-- 连接状-->
       <view class="connection-bar" :class="{ connected: isConnected }">
         <view class="conn-indicator">
           <view class="conn-dot" :class="{ active: isConnected }" />
@@ -185,9 +168,7 @@ function getStatusClass(status: string): string {
             <view class="stat-value">
               <text class="value-num">{{ totalCount }}</text>
             </view>
-            <view class="stat-label">
-              设备总数
-            </view>
+            <view class="stat-label">设备总数</view>
           </view>
           <view class="stat-decoration" />
         </view>
@@ -200,9 +181,7 @@ function getStatusClass(status: string): string {
             <view class="stat-value">
               <text class="value-num">{{ onlineCount }}</text>
             </view>
-            <view class="stat-label">
-              在线设备
-            </view>
+            <view class="stat-label">在线设备</view>
           </view>
           <view class="stat-decoration" />
         </view>
@@ -215,9 +194,7 @@ function getStatusClass(status: string): string {
             <view class="stat-value">
               <text class="value-num">{{ workingCount }}</text>
             </view>
-            <view class="stat-label">
-              工作中
-            </view>
+            <view class="stat-label">工作中</view>
           </view>
           <view class="stat-decoration" />
         </view>
@@ -285,13 +262,14 @@ function getStatusClass(status: string): string {
                 <view class="data-bar">
                   <view
                     class="bar-fill battery"
-                    :class="{ low: device.battery < 20, medium: device.battery >= 20 && device.battery < 50 }"
+                    :class="{
+                      low: device.battery < 20,
+                      medium: device.battery >= 20 && device.battery < 50,
+                    }"
                     :style="{ width: `${device.battery}%` }"
                   />
                 </view>
-                <view class="data-value">
-                  {{ device.battery }}%
-                </view>
+                <view class="data-value">{{ device.battery }}%</view>
               </view>
 
               <!-- 水量 -->
@@ -301,14 +279,9 @@ function getStatusClass(status: string): string {
                   <text>水量</text>
                 </view>
                 <view class="data-bar">
-                  <view
-                    class="bar-fill water"
-                    :style="{ width: `${device.water}%` }"
-                  />
+                  <view class="bar-fill water" :style="{ width: `${device.water}%` }" />
                 </view>
-                <view class="data-value">
-                  {{ device.water }}%
-                </view>
+                <view class="data-value">{{ device.water }}%</view>
               </view>
             </view>
 
@@ -342,7 +315,7 @@ function getStatusClass(status: string): string {
         </view>
       </view>
 
-      <!-- 空状态 -->
+      <!-- 空状-->
       <view v-if="devices.length === 0" class="empty-state">
         <view class="empty-icon">
           <text class="i-carbon-no-image text-100rpx" />
@@ -351,7 +324,7 @@ function getStatusClass(status: string): string {
         <text class="empty-hint">请检查 MQTT 连接或添加设备</text>
       </view>
 
-      <!-- 底部操作栏 -->
+      <!-- 底部操作-->
       <view class="footer-bar">
         <button class="footer-btn logout" @click="handleLogout">
           <text class="i-carbon-logout" />
@@ -363,7 +336,7 @@ function getStatusClass(status: string): string {
 </template>
 
 <style lang="scss" scoped>
-// 科技感配色
+// 科技感配
 $primary: #00d4ff;
 $primary-dark: #0099cc;
 $secondary: #7b2dff;
@@ -708,7 +681,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
     }
   }
 
-  // 内容区
+  // 内容
   .card-content {
     position: relative;
     z-index: 2;
@@ -1043,7 +1016,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 空状态
+// 空状
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1068,7 +1041,7 @@ $text-secondary: rgba(255, 255, 255, 0.6);
   }
 }
 
-// 底部操作栏
+// 底部操作
 .footer-bar {
   position: fixed;
   bottom: 0;

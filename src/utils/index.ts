@@ -1,45 +1,47 @@
-import type { PageMetaDatum, SubPackages } from '@uni-helper/vite-plugin-uni-pages'
-import { isMpWeixin } from '@uni-helper/uni-env'
-import { pages, subPackages } from '@/pages.json'
-import { isPageTabbar } from '@/tabbar/store'
-
-export type PageInstance = Page.PageInstance<AnyObject, object> & { $page: Page.PageInstance<AnyObject, object> & { fullPath: string } }
-
-export function getLastPage() {
+import { pages, subPackages, tabBar } from '@/pages.json'
+const getLastPage = () => {
   // getCurrentPages() 至少有1个元素，所以不再额外判断
   // const lastPage = getCurrentPages().at(-1)
-  // 上面那个在低版本安卓中打包会报错，所以改用下面这个【虽然我加了 src/interceptions/prototype.ts，但依然报错】
+  // 上面那个在低版本安卓中打包回报错，所以改用下面这个【虽然我加了src/interceptions/prototype.ts，但依然报错】
   const pages = getCurrentPages()
-  return pages[pages.length - 1] as PageInstance
+  return pages[pages.length - 1]
+}
+
+/** 判断当前页面是否是tabbar页  */
+export const getIsTabbar = () => {
+  if (!tabBar) {
+    return false
+  }
+  if (!tabBar.list.length) {
+    // 通常有tabBar的话，list不能有空，且至少有2个元素，这里其实不用处理
+    return false
+  }
+  const lastPage = getLastPage()
+  const currPath = lastPage.route
+  return !!tabBar.list.find((e) => e.pagePath === currPath)
 }
 
 /**
  * 获取当前页面路由的 path 路径和 redirectPath 路径
- * path 如 '/pages/login/login'
- * redirectPath 如 '/pages/demo/base/route-interceptor'
+ * path 如 ‘/pages/login/index’
+ * redirectPath 如 ‘/pages/demo/base/route-interceptor’
  */
-export function currRoute() {
-  const lastPage = getLastPage() as PageInstance
-  if (!lastPage) {
-    return {
-      path: '',
-      query: {},
-    }
-  }
-  const currRoute = lastPage.$page
+export const currRoute = () => {
+  const lastPage = getLastPage()
+  const currRoute = (lastPage as any).$page
   // console.log('lastPage.$page:', currRoute)
   // console.log('lastPage.$page.fullpath:', currRoute.fullPath)
   // console.log('lastPage.$page.options:', currRoute.options)
   // console.log('lastPage.options:', (lastPage as any).options)
   // 经过多端测试，只有 fullPath 靠谱，其他都不靠谱
-  const { fullPath } = currRoute
+  const { fullPath } = currRoute as { fullPath: string }
   // console.log(fullPath)
-  // eg: /pages/login/login?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor (小程序)
-  // eg: /pages/login/login?redirect=%2Fpages%2Froute-interceptor%2Findex%3Fname%3Dfeige%26age%3D30(h5)
-  return parseUrlToObj(fullPath)
+  // eg: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor (小程序)
+  // eg: /pages/login/index?redirect=%2Fpages%2Froute-interceptor%2Findex%3Fname%3Dfeige%26age%3D30(h5)
+  return getUrlObj(fullPath)
 }
 
-export function ensureDecodeURIComponent(url: string) {
+const ensureDecodeURIComponent = (url: string) => {
   if (url.startsWith('%')) {
     return ensureDecodeURIComponent(decodeURIComponent(url))
   }
@@ -47,10 +49,10 @@ export function ensureDecodeURIComponent(url: string) {
 }
 /**
  * 解析 url 得到 path 和 query
- * 比如输入url: /pages/login/login?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor
- * 输出: {path: /pages/login/login, query: {redirect: /pages/demo/base/route-interceptor}}
+ * 比如输入url: /pages/login/index?redirect=%2Fpages%2Fdemo%2Fbase%2Froute-interceptor
+ * 输出: {path: /pages/login/index, query: {redirect: /pages/demo/base/route-interceptor}}
  */
-export function parseUrlToObj(url: string) {
+export const getUrlObj = (url: string) => {
   const [path, queryStr] = url.split('?')
   // console.log(path, queryStr)
 
@@ -69,28 +71,29 @@ export function parseUrlToObj(url: string) {
   return { path, query }
 }
 /**
- * 得到所有的需要登录的 pages，包括主包和分包的
- * 这里设计得通用一点，可以传递 key 作为判断依据，默认是 excludeLoginPath, 与 route-block 配对使用
- * 如果没有传 key，则表示所有的 pages，如果传递了 key, 则表示通过 key 过滤
+ * 得到所有的需要登录的pages，包括主包和分包的
+ * 这里设计得通用一点，可以传递key作为判断依据，默认是 needLogin, 与 route-block 配对使用
+ * 如果没有传 key，则表示所有的pages，如果传递了 key, 则表示通过 key 过滤
  */
-export function getAllPages(key?: string) {
+export const getAllPages = (key = 'needLogin') => {
   // 这里处理主包
-  const mainPages = (pages as PageMetaDatum[])
-    .filter(page => !key || page[key])
-    .map(page => ({
-      ...page,
-      path: `/${page.path}`,
-    }))
-
+  const mainPages = [
+    ...pages
+      .filter((page) => !key || page[key])
+      .map((page) => ({
+        ...page,
+        path: `/${page.path}`,
+      })),
+  ]
   // 这里处理分包
-  const subPages: PageMetaDatum[] = []
-  ;(subPackages as SubPackages).forEach((subPageObj) => {
+  const subPages: any[] = []
+  subPackages.forEach((subPageObj) => {
     // console.log(subPageObj)
     const { root } = subPageObj
 
     subPageObj.pages
-      .filter(page => !key || page[key])
-      .forEach((page) => {
+      .filter((page) => !key || page[key])
+      .forEach((page: { path: string } & Record<string, any>) => {
         subPages.push({
           ...page,
           path: `/${root}/${page.path}`,
@@ -102,78 +105,44 @@ export function getAllPages(key?: string) {
   return result
 }
 
-export function getCurrentPageI18nKey() {
-  const routeObj = currRoute()
+/**
+ * 得到所有的需要登录的pages，包括主包和分包的
+ * 只得到 path 数组
+ */
+export const getNeedLoginPages = (): string[] => getAllPages('needLogin').map((page) => page.path)
 
-  let currPage = (pages as PageMetaDatum[]).find(page => `/${page.path}` === routeObj.path)
-  if (!currPage) {
-    // 在主包中找不到对应的页面，则在分包中找
-    const allSubPages: PageMetaDatum[] = []
-    subPackages?.forEach((config) => {
-      config.pages?.forEach((cur) => {
-        allSubPages.push({
-          ...cur,
-          path: `/${config.root}/${cur.path}`,
-        })
-      })
-    })
-    currPage = allSubPages.find(page => page.path === routeObj.path)
-    if (!currPage) {
-      console.warn('路由不正确')
-      return ''
+/**
+ * 得到所有的需要登录的pages，包括主包和分包的
+ * 只得到 path 数组
+ */
+export const needLoginPages: string[] = getAllPages('needLogin').map((page) => page.path)
+
+export function randomNum(len: number, radix: number) {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+  const uuid = [] as string[]
+  radix = radix || chars.length
+
+  if (len) {
+    // Compact form
+    for (let i = 0; i < len; i++) {
+      uuid[i] = chars[0 | (Math.random() * radix)]
+    }
+  } else {
+    // rfc4122, version 4 form
+    let r
+
+    // rfc4122 requires these characters
+    uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-'
+    uuid[14] = '4'
+
+    // Fill in random data.  At i==19 set the high bits of clock sequence as
+    // per rfc4122, sec. 4.1.5
+    for (let i = 0; i < 36; i++) {
+      if (!uuid[i]) {
+        r = 0 | (Math.random() * 16)
+        uuid[i] = chars[i === 19 ? (r & 0x3) | 0x8 : r]
+      }
     }
   }
-  console.log(currPage)
-  console.log(currPage.style.navigationBarTitleText)
-  return currPage.style?.navigationBarTitleText || ''
+  return uuid.join('') + new Date().getTime()
 }
-
-export function isCurrentPageTabbar() {
-  const { path } = currRoute()
-  return isPageTabbar(path)
-}
-
-/**
- * 根据微信小程序当前环境，判断应该获取的 baseUrl
- */
-export function getEnvBaseUrl() {
-  // 请求基准地址
-  let baseUrl = import.meta.env.VITE_SERVER_BASEURL
-
-  // # 有些同学可能需要在微信小程序里面根据 develop、trial、release 分别设置上传地址，参考代码如下。
-  const VITE_SERVER_BASEURL__WEIXIN_DEVELOP = 'https://ukw0y1.laf.run'
-  const VITE_SERVER_BASEURL__WEIXIN_TRIAL = 'https://ukw0y1.laf.run'
-  const VITE_SERVER_BASEURL__WEIXIN_RELEASE = 'https://ukw0y1.laf.run'
-
-  // 微信小程序端环境区分
-  if (isMpWeixin) {
-    const {
-      miniProgram: { envVersion },
-    } = uni.getAccountInfoSync()
-
-    switch (envVersion) {
-      case 'develop':
-        baseUrl = VITE_SERVER_BASEURL__WEIXIN_DEVELOP || baseUrl
-        break
-      case 'trial':
-        baseUrl = VITE_SERVER_BASEURL__WEIXIN_TRIAL || baseUrl
-        break
-      case 'release':
-        baseUrl = VITE_SERVER_BASEURL__WEIXIN_RELEASE || baseUrl
-        break
-    }
-  }
-
-  return baseUrl
-}
-
-/**
- * 是否是双token模式
- */
-export const isDoubleTokenMode = import.meta.env.VITE_AUTH_MODE === 'double'
-
-/**
- * 首页路径，通过 page.json 里面的 type 为 home 的页面获取，如果没有，则默认是第一个页面
- * 通常为 /pages/index/index
- */
-export const HOME_PAGE = `/${(pages as PageMetaDatum[]).find(page => page.type === 'home')?.path || (pages as PageMetaDatum[])[0].path}`
